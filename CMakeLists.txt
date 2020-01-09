@@ -6,5 +6,7 @@ find_package(FLTK REQUIRED)
 include_directories(${FLTK_INCLUDE_DIR})
 
 add_executable(texteditor main.cpp)
+
 target_link_libraries(texteditor ${FLTK_LIBRARIES})
+
 
