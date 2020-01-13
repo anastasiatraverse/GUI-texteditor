@@ -10,7 +10,6 @@ Fl_Menu_Item menuitems[] = {
 		    { "E&xit", FL_COMMAND + 'q',(Fl_Callback *)quit_cb, 0},
 		    { 0 },
 		  	{ "&Edit", 0, 0, 0, FL_SUBMENU },
-		    { "&Undo",       FL_COMMAND + 'z', (Fl_Callback *)undo_cb, 0, FL_MENU_DIVIDER },
 		    { "Cu&t",        FL_COMMAND + 'x', (Fl_Callback *)cut_cb},
 		    { "&Copy",       FL_COMMAND + 'c', (Fl_Callback *)copy_cb},
 		    { "&Paste",      FL_COMMAND + 'v', (Fl_Callback *)paste_cb},
@@ -33,13 +32,6 @@ int main(int argc, char *argv[]){
     editor->buffer(buff);		// attach the text buffer to our editor widget
     win->resizable(editor);
     Fl_Menu_Bar *m = new Fl_Menu_Bar(0, 0, 640, 30);
-
-    replace_dlg = new Fl_Window(300, 105, "Replace");
-	Fl_Input *replace_find = new Fl_Input(70, 10, 200, 25, "Find:");
-	Fl_Input *replace_with = new Fl_Input(70, 40, 200, 25, "Replace:");
-	Fl_Button *replace_all = new Fl_Button(10, 70, 90, 25, "Replace All");
-	Fl_Button *replace_next = new Fl_Button(105, 70, 120, 25, "Replace Next");
-	Fl_Button *replace_cancel = new Fl_Button(230, 70, 60, 25, "Cancel");
 
 	m -> copy(menuitems);
 

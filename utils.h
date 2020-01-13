@@ -22,22 +22,32 @@ char search[256] = "";
 int check_save = 0;
 int loading =0;
 int changed = 0;
+
 Fl_Text_Buffer *buff;
 Fl_Text_Editor *editor;
 Fl_Window *replace_dlg;
+Fl_Input *replace_find;
+Fl_Input *replace_with;
+Fl_Button *replace_all;
+Fl_Button *replace_next;
+Fl_Button *replace_cancel;
+
+void replace2_cb(Fl_Widget* menu, void* main_window_in);
+void replace_cancel_func(Fl_Widget* menu, void* main_window_in);
+void replaceall_cb(Fl_Widget* menu, void* main_window_in);
 
 void replace_dialog_win(){
-	Fl_Window *replace_dlg = new Fl_Window(300, 105, "Replace");
-	Fl_Input *replace_find = new Fl_Input(70, 10, 200, 25, "Find:");
-	Fl_Input *replace_with = new Fl_Input(70, 40, 200, 25, "Replace:");
-	Fl_Button *replace_all = new Fl_Button(10, 70, 90, 25, "Replace All");
-	Fl_Button *replace_next = new Fl_Button(105, 70, 120, 25, "Replace Next");
-	Fl_Button *replace_cancel = new Fl_Button(230, 70, 60, 25, "Cancel");
+	replace_dlg = new Fl_Window(300, 105, "Replace");
+	replace_find = new Fl_Input(70, 10, 200, 25, "Find:");
+	replace_with = new Fl_Input(70, 40, 200, 25, "Replace:");
+	replace_all = new Fl_Button(10, 70, 90, 25, "Replace All");
+	replace_next = new Fl_Button(105, 70, 120, 25, "Replace Next");
+	replace_cancel = new Fl_Button(230, 70, 60, 25, "Cancel");
+	replace_next->callback(replace2_cb);
+	replace_cancel->callback(replace_cancel_func);
+	replace_all->callback(replaceall_cb);
 }
 
-void changed_bd(Fl_Widget* menu, void* main_window_in){
-
-}
 
 void to_text_buff(std::vector<std::string> v){
 	std::string all = "";
@@ -50,7 +60,6 @@ void to_text_buff(std::vector<std::string> v){
 }
 
 void load_file(char *file_path){
-	std::cout<<file_path<<std::endl;
 	std::string p = file_path;
 	std::vector<std::string> lines;
 	loading = 1;	
@@ -103,11 +112,8 @@ void save_cb(Fl_Widget* menu, void* main_window_in){
 void quit_cb(Fl_Widget* menu, void* main_window_in){
 	// Fl_Window * main_window = static_cast<Fl_Window*>(main_window_in);
 	// main_window-> hide();
+	save_cb(menu, main_window_in);
 	exit(0);
-}
-
-void undo_cb(Fl_Widget* menu, void* main_window_in){
-
 }
 
 void copy_cb(Fl_Widget* menu, void* main_window_in){
@@ -139,8 +145,6 @@ void find_cb(Fl_Widget* menu, void* main_window_in){
 	if (val != NULL) {
 	    strcpy(search, val);
 
-	    std::cout<<search<<std::endl;
-
 	    find2(menu, main_window_in);
 	}
 }
@@ -159,10 +163,70 @@ void find2(Fl_Widget* menu, void* main_window_in){
   	}
 }
 
+void replace_cb(Fl_Widget* menu, void* main_window_in);
+
+
 void replace_cb(Fl_Widget* menu, void* main_window_in){
+	replace_dialog_win();
 	replace_dlg -> show();
 }
 
-void replaceall_cb(){
-	std::cout<<"replace all function call"<<std::endl;
+void replace_cancel_func(Fl_Widget* menu, void* main_window_in){
+	replace_dlg -> hide();
+}
+
+void replace2_cb(Fl_Widget* menu, void* main_window_in){
+	const char *find = replace_find->value();
+  	const char *replace = replace_with->value();
+
+  	if (find[0] == '\0') {
+	    replace_dlg->show();
+	    return;
+  	}
+
+  	replace_dlg->hide();
+  	editor->insert_position(0);
+
+  	int pos = editor->insert_position();
+  	int found = buff->search_forward(pos, find, &pos);
+  	if (found) {
+	    buff->select(pos, pos+strlen(find));
+	    buff->remove_selection();
+	    buff->insert(pos, replace);
+	    buff->select(pos, pos+strlen(replace));
+	    editor->insert_position(pos+strlen(replace));
+	    editor->show_insert_position();
+  	}
+  	else fl_alert("No occurrences of \'%s\' found!", find);
+
+}
+
+void replaceall_cb(Fl_Widget* menu, void* main_window_in){
+	const char *find = replace_find->value();
+  	const char *replace = replace_with->value();
+
+  	if (find[0] == '\0') {
+	    replace_dlg->show();
+	    return;
+  	}
+
+  	replace_dlg->hide();
+  	editor->insert_position(0);
+
+  	int times = 0;
+  	for (int found = 1; found;) {
+	    int pos = editor->insert_position();
+	    found = buff->search_forward(pos, find, &pos);
+	    if (found) {
+	        // Found a match; update the position and replace text...
+	        buff->select(pos, pos+strlen(find));
+	        buff->remove_selection();
+	        buff->insert(pos, replace);
+	        editor->insert_position(pos+strlen(replace));
+	        editor->show_insert_position();
+	        times++;
+    	}
+  	}
+	if (times) fl_message("Replaced %d occurrences.", times);
+	else fl_alert("No occurrences of \'%s\' found!", find);
 }
